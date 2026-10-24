@@ -134,11 +134,13 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
 
 
         <activity
-            android:name="org.kde.kdeconnect.ui.lite.LiteRemoteActivity"
-            android:launchMode="singleTop"
+            android:name="org.kde.kdeconnect.ui.lite.LiteRemoteLauncherActivity"
             android:exported="true"
             android:label="@string/lite_remote_title"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@android:style/Theme.NoDisplay"
+            android:taskAffinity=""
+            android:noHistory="true"
+            android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -148,6 +150,12 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
             <meta-data android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
+        <activity
+            android:name="org.kde.kdeconnect.ui.lite.LiteRemoteActivity"
+            android:launchMode="singleTop"
+            android:exported="true"
+            android:label="@string/lite_remote_title"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="org.kde.kdeconnect.ui.MainActivity"
             android:exported="true">

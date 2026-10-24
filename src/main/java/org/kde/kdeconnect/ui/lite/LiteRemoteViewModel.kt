@@ -93,6 +93,8 @@ class LiteRemoteViewModel(application: Application) : AndroidViewModel(applicati
 
     fun showNotice(message: Int) { notice = message }
 
+    fun clearNotice() { notice = null }
+
     private fun readyPlugin(): MousePadPlugin? {
         val target = selectedId
         refreshDevices()

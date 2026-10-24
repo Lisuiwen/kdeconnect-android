@@ -21,7 +21,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.BackgroundService
 import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.ui.MainActivity
@@ -51,12 +50,6 @@ class LiteRemoteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null && intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER)
-            && !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(LiteRemoteViewModel.DEFAULT_HOME_KEY, true)) {
-            openFullApp()
-            finish()
-            return
-        }
         model = ViewModelProvider(this)[LiteRemoteViewModel::class.java]
         model.refreshDevices()
         intent.getStringExtra("deviceId")?.takeIf { id -> model.devices.any { it.id == id } }?.let(model::selectDevice)
@@ -103,11 +96,6 @@ class LiteRemoteActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         if (!::model.isInitialized) return
-        if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER) && !model.defaultHome) {
-            openFullApp()
-            finish()
-            return
-        }
         intent.getStringExtra("deviceId")?.takeIf { id -> model.devices.any { it.id == id } }?.let {
             voice.cancel()
             model.selectDevice(it)
@@ -130,6 +118,7 @@ class LiteRemoteActivity : AppCompatActivity() {
     }
 
     private fun startVoice() {
+        model.clearNotice()
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             voice.start(true)
         } else {
