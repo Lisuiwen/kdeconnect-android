@@ -16,6 +16,8 @@
 
 测试版只有一个桌面启动入口，默认打开极简首页。右上角菜单可以改为默认打开完整 KDE Connect；完整界面的菜单也可以再次进入“极简遥控”。完整功能入口始终保留。
 
+启动入口使用独立的无界面路由 Activity，每次点图标都会读取默认首页设置。最近任务仍恢复上次页面，完整界面与极简页也可以直接互切。
+
 ## 语音与文字
 
 1. 首次操作话筒时授予麦克风权限。授权完成后再次操作话筒，避免权限弹窗关闭后意外开始录音。
@@ -91,7 +93,7 @@ $liteAdb = 'D:\Apps\Tools\KDEConnect\toolchain\android-sdk\platform-tools\adb.ex
 | 修改上游文件 | `src/main/AndroidManifest.xml` | 注册极简启动 Activity，保留完整 Activity，增加系统语音服务可见性声明 |
 | 修改上游文件 | `src/main/java/org/kde/kdeconnect/ui/MainActivity.kt` | 增加进入极简遥控的菜单入口 |
 | 修改上游文件 | `build.gradle.kts` | 许可证报告解析 Debug / Release 运行时依赖及 `coreLibraryDesugaring`，包含传递依赖和随 APK 分发的 OpenJDK 脱糖运行库声明，避免下载无关的 AGP、Lint 和测试工具 |
-| 新增模块 | `src/main/java/org/kde/kdeconnect/ui/lite/` | Activity、Compose 页面、设备与草稿状态、语音控制器、快捷键控制器 |
+| 新增模块 | `src/main/java/org/kde/kdeconnect/ui/lite/` | 启动路由、极简 Activity、Compose 页面、设备与草稿状态、语音控制器、快捷键控制器 |
 | 新增资源 | `src/main/res/values/lite_remote_strings.xml`、`src/main/res/values-zh-rCN/lite_remote_strings.xml` | 英文与简体中文界面文本 |
 | 新增测试 | `src/test/java/org/kde/kdeconnect/ui/lite/` | 6 个 ViewModel、6 个快捷键、8 个语音控制测试，共 20 个 |
 | 文档 | `README.md`、`docs/LITE_REMOTE.md` | 使用入口、构建方法及验收记录 |
@@ -102,28 +104,34 @@ $liteAdb = 'D:\Apps\Tools\KDEConnect\toolchain\android-sdk\platform-tools\adb.ex
 
 2026-10-25（北京时间）验证结果：`assembleDebug` 成功，Lite 定向单元测试 **20 / 20 通过**，无失败、错误或跳过。覆盖草稿隔离及恢复、离线保护、不自动回车、六种快捷键协议字段、语音取消/时序/超时和资源释放。这些测试没有调用手机上的真实语音引擎，也没有向真实 Windows 窗口输入。
 
-APK：`build/outputs/apk/debug/kdeconnect-android-debug.apk`，27,586,848 字节。包名 `org.kde.kdeconnect_tp.debug`，启动 Activity 为 `LiteRemoteActivity`；`apksigner` 验证通过（v1 / v2），目标 SDK 37。已解包核对 `res/raw/license` 与生成文件一致，并包含 NIO 2.1.5 运行库及 GPL Classpath Exception 声明。
+APK：`build/outputs/apk/debug/kdeconnect-android-debug.apk`，27,684,784 字节。包名 `org.kde.kdeconnect_tp.debug`，启动入口为 `LiteRemoteLauncherActivity`，按设置进入极简页或完整界面；`apksigner` 验证通过（v1 / v2），目标 SDK 37。已解包核对 `res/raw/license` 与生成文件一致，并包含 NIO 2.1.5 运行库及 GPL Classpath Exception 声明。
 
-SHA256：`49FBD6C34594FC4DE6DCED226C536FF8CB6AD6318B559DD46DCEB8C62B0788F6`。
+SHA256：`DC8B7A256E473E3764F641D8529DEC90B8D028BA978BBBDCB60203478251165E`。
 
-已通过 ADB 识别并获得授权的手机为 Xiaomi 14、Android 16 / API 36，检测到小米系统识别服务 `com.xiaomi.mibrain.speech/.asr.AsrService`。构建结束前 USB 设备断开，最终 ADB 列表为空，因此**尚未安装本 APK，也未进行真机界面、中文语音、蓝牙拾音或 Windows 端到端验证**。正式版未被覆盖或卸载，Windows 安装未改动。
+已通过 ADB 识别并获得授权的手机为 Xiaomi 14、Android 16 / API 36，检测到小米系统识别服务 `com.xiaomi.mibrain.speech/.asr.AsrService`。手机在构建结束前断开，**尚未向手机安装本 APK，也未进行真人中文听写、蓝牙拾音或 Windows 端到端验证**。正式版未被覆盖或卸载，Windows 安装未改动。
+
+随后已在独立 Android 16 中文模拟器 `KDEConnect_Lite_API_36`（`emulator-5554`）安装更新版。实际检查了竖屏、横屏滚动、软键盘、深浅色、草稿旋转/强制重启恢复、完整界面往返、默认首页开关的冷/热启动、拒绝麦克风权限和无语音结果提示，未发现应用崩溃。预览期间修复了旧麦克风权限提示残留，以及启动图标直接恢复任务导致默认首页设置无法应用的问题；修改后重新构建，20 项单元测试再次通过。
+
+模拟器使用 WHPX 硬件加速和软件 GPU。37.2.12 的 netsimd 在本机初始化失败，启动时关闭 `WiFiPacketStream`、`BluetoothEmulation`、`Uwb`、`Nfc` 后可正常运行，Wi-Fi 使用原有网络栈。本次关闭宿主音频，仅用于界面预览；语音识别返回的是“未识别到语音”，不能据此判定中文识别或蓝牙拾音通过。模拟器未与 Brook 配对，发送和快捷键禁用符合预期。
+
+![Android 16 中文模拟器中的极简首页](images/lite-remote-emulator.png)
 
 本地详细记录位于 `build/qa/verification.json`，测试报告位于 `build/reports/tests/testDebugUnitTest/index.html`；这些生成文件不提交 Git。以下保留各项真实验收进度与人工步骤。
 
 | 编号 | 场景 | 当前结果 | 人工验证步骤 / 通过条件 |
 | --- | --- | --- | --- |
-| AC-01 | 极简首页 | 编译及启动声明已核验，界面待真机 | 从测试版图标启动，确认单页、话筒、编辑框和六个快捷键；深浅色、竖横屏和软键盘下均可操作 |
+| AC-01 | 极简首页 | 模拟器界面、深浅色、旋转和软键盘已检查，待真机 | 从测试版图标启动，确认单页、话筒、编辑框和六个快捷键；深浅色、竖横屏和软键盘下均可操作 |
 | AC-02 | 连接 Brook | 设备选择及离线保护单测通过，连接待真机 | 测试版重新配对后选择 Brook，确认顶部在线状态；关闭电脑端远程输入时明确提示且禁用发送 |
-| AC-03 | 中文语音 | 待真人说话验证 | 分别用长按与点击模式说“帮我检查这个组件的布局”，核对最终预览；空识别不清空旧稿 |
+| AC-03 | 中文语音 | 模拟器拒权/无语音路径通过，中文听写待真人 | 分别用长按与点击模式说“帮我检查这个组件的布局”，核对最终预览；空识别不清空旧稿 |
 | AC-04 | 中英混合术语 | 待真人说话验证 | 说“在 Android 的 LiteRemoteActivity 中检查 Kotlin StateFlow 和 Cursor 输入”，记录引擎、语言、结果和具体误词 |
 | AC-05 | 蓝牙拾音 | 待真人对照验证 | 按下文“蓝牙对照”操作，记录真实拾音来源及断开后的恢复情况 |
 | AC-06 | Cursor 焦点输入 | 不附带 Enter 的单测通过，待 Cursor 验证 | 鼠标点进 Cursor 输入框，发送可辨认测试句；逐字核对收到内容，确认没有自动提交，再单独点回车 |
 | AC-07 | 区域截图 | 热键协议单测通过，待 Windows 验证 | 手机点截图，确认 Windows 出现区域选择界面，使用电脑鼠标框选；也验证 Esc 能取消 |
 | AC-08 | 截图后粘贴图片 | 待 Windows 端到端验证 | 完成截图后聚焦支持图片的 Cursor 输入框，再点粘贴；应出现图片附件，不能被手机草稿文本覆盖 |
 | AC-09 | 复制、粘贴、回车、Esc、撤销 | 协议字段及禁用保护单测通过，待 Windows 验证 | 在可丢弃的编辑内容中分别选中文本复制、粘贴、换行、关闭菜单、撤销；每个按钮只执行一次对应操作 |
-| AC-10 | 断线与重建 | 草稿恢复及离线保护单测通过，待真机 | 编辑草稿后暂断 Wi-Fi，确认禁用发送且草稿不变；恢复网络、旋转屏幕和重开测试版，核对设备选择及草稿恢复 |
-| AC-11 | 完整 KDE 功能 | 待真机验证 | 极简菜单进入完整界面，检查设备、插件和设置，再从完整菜单返回极简；切换默认首页后重新启动 |
-| AC-12 | 并行安装 | 独立包名和签名已核验，待安装验证 | 检查正式包与 `.debug` 同时存在，各自可启动、配对数据独立；确认正式版仍正常 |
+| AC-10 | 断线与重建 | 单测通过，模拟器旋转/强制重启恢复通过，待实机断线测试 | 编辑草稿后暂断 Wi-Fi，确认禁用发送且草稿不变；恢复网络、旋转屏幕和重开测试版，核对设备选择及草稿恢复 |
+| AC-11 | 完整 KDE 功能 | 模拟器页面往返及默认首页冷/热启动通过，其他功能待真机 | 极简菜单进入完整界面，检查设备、插件和设置，再从完整菜单返回极简；切换默认首页后重新启动 |
+| AC-12 | 并行安装 | 模拟器安装成功，独立包名和签名已核验，待手机并行安装 | 检查正式包与 `.debug` 同时存在，各自可启动、配对数据独立；确认正式版仍正常 |
 
 ### 蓝牙对照
 
