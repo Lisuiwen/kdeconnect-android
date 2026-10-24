@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL -->
+<resources>
+    <string name="lite_app_permissions">App permissions</string>
+    <string name="lite_remote_title">Lite Remote</string>
+    <string name="lite_choose_device">Choose a computer</string>
+    <string name="lite_connected">Connected</string>
+    <string name="lite_connecting">Reconnecting…</string>
+    <string name="lite_disconnected">Disconnected</string>
+    <string name="lite_switch_device">Switch</string>
+    <string name="lite_settings">Lite Remote settings</string>
+    <string name="lite_full_app">Open full KDE Connect</string>
+    <string name="lite_default_on">Default home: Lite Remote ✓</string>
+    <string name="lite_default_off">Default home: full KDE Connect</string>
+    <string name="lite_reconnect">Refresh connections</string>
+    <string name="lite_pair_hint">Pair this debug app with your computer in KDE Connect first. Your official app keeps its own pairing.</string>
+    <string name="lite_pair_device">Manage / pair devices</string>
+    <string name="lite_disconnected_hint">Computer offline. Your draft is saved; reconnect before sending.</string>
+    <string name="lite_keyboard_unavailable">Remote input is unavailable or disabled on the computer. Check its KDE Connect settings.</string>
+    <string name="lite_mic_granted">Microphone allowed. Press the microphone again to start.</string>
+    <string name="lite_mic_permission">Microphone permission is required. Allow it in app permissions, or use voice typing in your keyboard.</string>
+    <string name="lite_text_queued">Text queued. Draft kept for recovery; Enter was not sent.</string>
+    <string name="lite_shortcut_queued">Shortcut queued.</string>
+    <string name="lite_voice_starting">Preparing microphone…</string>
+    <string name="lite_voice_listening">Listening · release or tap to finish</string>
+    <string name="lite_voice_processing">Recognizing…</string>
+    <string name="lite_hold_to_talk">Hold to talk</string>
+    <string name="lite_tap_to_talk">Tap to start / tap again to stop</string>
+    <string name="lite_stop_voice">Stop voice recognition</string>
+    <string name="lite_use_tap_mode">Switch to tap mode</string>
+    <string name="lite_use_hold_mode">Switch to hold mode</string>
+    <string name="lite_voice_service_hint">The system service may stop on silence or use cloud recognition. Bluetooth microphone routing depends on that service. Keyboard voice typing also works below.</string>
+    <string name="lite_draft">Text preview</string>
+    <string name="lite_draft_hint">Voice results appear here. You can also type or use your keyboard’s microphone.</string>
+    <string name="lite_send_text">Send text</string>
+    <string name="lite_screenshot">Screenshot</string>
+    <string name="lite_copy">Copy</string>
+    <string name="lite_paste">Paste</string>
+    <string name="lite_enter">Enter</string>
+    <string name="lite_escape">Cancel</string>
+    <string name="lite_undo">Undo</string>
+    <string name="lite_screenshot_hint">Screenshot opens Windows snipping. Select the area with your mouse, then tap Paste when ready.</string>
+    <string name="lite_voice_unavailable">No system speech service. Use your keyboard’s voice typing in the preview field.</string>
+    <string name="lite_voice_no_match">No speech recognized. Try the microphone again; your draft is unchanged.</string>
+    <string name="lite_voice_network">Speech service network error. Try again or use keyboard voice typing.</string>
+    <string name="lite_voice_language">Speech service does not support the current language or its model is missing.</string>
+    <string name="lite_voice_audio">Microphone unavailable. Check other recording apps and retry.</string>
+    <string name="lite_voice_busy">Speech service busy. Wait a moment, then retry.</string>
+    <string name="lite_voice_failed">Recognition failed or timed out. Press the microphone to retry.</string>
+    <string name="lite_device_changed">Device selection changed. Check the target before sending.</string>
+</resources>

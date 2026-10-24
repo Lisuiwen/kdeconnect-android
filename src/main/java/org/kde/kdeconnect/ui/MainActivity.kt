@@ -7,6 +7,7 @@
 package org.kde.kdeconnect.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -41,12 +42,14 @@ import org.kde.kdeconnect.KdeConnect
 import org.kde.kdeconnect.extensions.setOnApplyWindowInsetsListenerCompat
 import org.kde.kdeconnect.helpers.DeviceHelper
 import org.kde.kdeconnect.ui.about.AboutFragment
+import org.kde.kdeconnect.ui.lite.LiteRemoteActivity
 import org.kde.kdeconnect_tp.R
 import org.kde.kdeconnect_tp.databinding.ActivityMainBinding
 
 private const val MENU_ENTRY_ADD_DEVICE = 1 //0 means no-selection
 private const val MENU_ENTRY_SETTINGS = 2
 private const val MENU_ENTRY_ABOUT = 3
+private const val MENU_ENTRY_LITE_REMOTE = 4
 private const val MENU_ENTRY_DEVICE_FIRST_ID = 1000 //All subsequent ids are devices in the menu
 private const val MENU_ENTRY_DEVICE_UNKNOWN = 9999 //It's still a device, but we don't know which one yet
 private const val STATE_SELECTED_MENU_ENTRY = "selected_entry" //Saved only in onSaveInstanceState
@@ -272,6 +275,21 @@ class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener {
             }
         }
         return MENU_ENTRY_DEVICE_UNKNOWN
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        if (menu.findItem(MENU_ENTRY_LITE_REMOTE) == null) {
+            menu.add(Menu.NONE, MENU_ENTRY_LITE_REMOTE, Menu.NONE, R.string.lite_remote_title)
+                .setOnMenuItemClickListener {
+                    startActivity(Intent(this, LiteRemoteActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        mCurrentDevice?.let { putExtra(EXTRA_DEVICE_ID, it) }
+                    })
+                    true
+                }
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+        }
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
