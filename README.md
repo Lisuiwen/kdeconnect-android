@@ -1,5 +1,7 @@
 # KDE Connect - Android app
 
+**本 Fork 的极简语音遥控入口：** [Lite Remote 中文使用、开发与验收说明](docs/LITE_REMOTE.md)。
+
 KDE Connect is a multi-platform app that allows your devices to communicate (eg: your phone and your computer).
 
 ## (Some) Features
