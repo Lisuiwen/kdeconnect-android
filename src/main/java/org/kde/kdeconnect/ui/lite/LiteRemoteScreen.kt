@@ -146,8 +146,6 @@ fun LiteRemoteScreen(
             TextButton(enabled = !busy, onClick = { onVoiceMode(!model.holdToTalk) }) {
                 Text(stringResource(if (model.holdToTalk) R.string.lite_use_tap_mode else R.string.lite_use_hold_mode))
             }
-            Text(stringResource(R.string.lite_voice_service_hint), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
             Spacer(Modifier.height(18.dp))
             OutlinedTextField(value = model.draft, onValueChange = model::editDraft,
                 label = { Text(stringResource(R.string.lite_draft)) },

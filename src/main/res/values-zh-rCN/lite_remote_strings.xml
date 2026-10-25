@@ -29,7 +29,6 @@
     <string name="lite_stop_voice">结束语音识别</string>
     <string name="lite_use_tap_mode">切换到点击模式</string>
     <string name="lite_use_hold_mode">切换到按住模式</string>
-    <string name="lite_voice_service_hint">系统服务可能遇到停顿就结束，也可能使用云端识别。蓝牙拾音取决于该服务；也可在下方使用输入法语音。</string>
     <string name="lite_draft">文字预览</string>
     <string name="lite_draft_hint">语音结果会追加到这里，也可打字或使用输入法的话筒。</string>
     <string name="lite_send_text">发送文字</string>

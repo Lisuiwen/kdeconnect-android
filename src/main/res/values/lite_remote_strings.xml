@@ -29,7 +29,6 @@
     <string name="lite_stop_voice">Stop voice recognition</string>
     <string name="lite_use_tap_mode">Switch to tap mode</string>
     <string name="lite_use_hold_mode">Switch to hold mode</string>
-    <string name="lite_voice_service_hint">The system service may stop on silence or use cloud recognition. Bluetooth microphone routing depends on that service. Keyboard voice typing also works below.</string>
     <string name="lite_draft">Text preview</string>
     <string name="lite_draft_hint">Voice results appear here. You can also type or use your keyboard’s microphone.</string>
     <string name="lite_send_text">Send text</string>

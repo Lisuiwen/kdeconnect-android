@@ -104,9 +104,9 @@ $liteAdb = 'D:\Apps\Tools\KDEConnect\toolchain\android-sdk\platform-tools\adb.ex
 
 2026-10-25（北京时间）验证结果：`assembleDebug` 成功，Lite 定向单元测试 **20 / 20 通过**，无失败、错误或跳过。覆盖草稿隔离及恢复、离线保护、不自动回车、六种快捷键协议字段、语音取消/时序/超时和资源释放。这些测试没有调用手机上的真实语音引擎，也没有向真实 Windows 窗口输入。
 
-APK：`build/outputs/apk/debug/kdeconnect-android-debug.apk`，27,684,545 字节。包名 `org.kde.kdeconnect_tp.debug`，启动入口为 `LiteRemoteLauncherActivity`，按设置进入极简页或完整界面；`apksigner` 验证通过（v1 / v2），目标 SDK 37。已解包核对 `res/raw/license` 与生成文件一致，并包含 NIO 2.1.5 运行库及 GPL Classpath Exception 声明。
+APK：`build/outputs/apk/debug/kdeconnect-android-debug.apk`，30,915,962 字节。包名 `org.kde.kdeconnect_tp.debug`，启动入口为 `LiteRemoteLauncherActivity`，按设置进入极简页或完整界面；`apksigner` 验证通过（v1 / v2），目标 SDK 37。已解包核对 `res/raw/license` 与生成文件一致，并包含 NIO 2.1.5 运行库及 GPL Classpath Exception 声明。
 
-SHA256：`2C154295D5979F7A79D3327E47388FDF4184B169B8E2C71A2A488B1596EF5D31`。
+SHA256：`511C5BAEA899327FC9C5EE209F3C8E3D4729D8A1CA235CBBC7DAC5F7ACC3B34C`。
 
 已在 Xiaomi 14、Android 16 / API 36 上成功安装测试版，手机与 Brook 已配对且可访问，真机极简页显示已连接。系统识别服务为 `com.xiaomi.mibrain.speech/.asr.AsrService`；用户确认预览中的“你好”来自按住话筒识别，并反馈实际试用可以正常使用。各快捷键、Cursor 不自动提交和图片剪贴板仍按下表逐项记录，不能把整体试用反馈作为所有项目均已验收的证据。
 
@@ -118,7 +118,9 @@ SHA256：`2C154295D5979F7A79D3327E47388FDF4184B169B8E2C71A2A488B1596EF5D31`。
 
 按用户真机试用后的反馈，已将独立“回车”移到“发送文字”右侧，并从下方快捷区移除重复入口。仅调整布局，发送与回车的协议和启用条件保持独立；重新构建成功并已更新手机测试版。在 320dp 窄屏模拟器上核对两个按钮并排、无截断；本次布局调整未新增或重跑逻辑单元测试。
 
-![Android 16 中文模拟器的文字操作区，320dp 窄屏下发送与回车并排](images/lite-remote-emulator.png)
+随后按用户要求移除主页的语音服务说明及对应中英文资源，重新构建并成功更新手机测试版；用户已确认此次更新测试无问题。语音识别与蓝牙的详细说明仍保留在本文档中。
+
+![已移除语音服务提示的 Android 16 中文模拟器首页，320dp 窄屏](images/lite-remote-emulator.png)
 
 本地详细记录位于 `build/qa/verification.json`，测试报告位于 `build/reports/tests/testDebugUnitTest/index.html`；这些生成文件不提交 Git。以下保留各项真实验收进度与人工步骤。
 
