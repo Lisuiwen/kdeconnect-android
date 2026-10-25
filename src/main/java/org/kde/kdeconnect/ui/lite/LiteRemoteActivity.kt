@@ -5,6 +5,7 @@
 package org.kde.kdeconnect.ui.lite
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -30,6 +31,8 @@ import org.kde.kdeconnect_tp.R
 class LiteRemoteActivity : AppCompatActivity() {
     private lateinit var model: LiteRemoteViewModel
     private lateinit var voice: VoiceInputController
+    private var attachmentTarget: String? = null
+    private var awaitingAttachments = false
     private val handler = Handler(Looper.getMainLooper())
     private val observerKey = "lite_remote_${System.identityHashCode(this)}"
     private val refresh = object : Runnable {
@@ -46,10 +49,22 @@ class LiteRemoteActivity : AppCompatActivity() {
     private val connectionPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         BackgroundService.ForceRefreshConnections(this)
     }
+    private val chooseAttachments = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        val target = attachmentTarget
+        val expected = awaitingAttachments
+        attachmentTarget = null
+        awaitingAttachments = false
+        if (uris.isNotEmpty()) {
+            if (expected) model.addPickedFiles(uris, target)
+            else model.showNotice(R.string.lite_device_changed)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        attachmentTarget = savedInstanceState?.getString(ATTACHMENT_TARGET)
+        awaitingAttachments = savedInstanceState?.getBoolean(AWAITING_ATTACHMENTS) ?: false
         model = ViewModelProvider(this)[LiteRemoteViewModel::class.java]
         model.refreshDevices()
         intent.getStringExtra("deviceId")?.takeIf { id -> model.devices.any { it.id == id } }?.let(model::selectDevice)
@@ -64,6 +79,7 @@ class LiteRemoteActivity : AppCompatActivity() {
                     onSelectDevice = { voice.cancel(); model.selectDevice(it) },
                     onRefresh = ::refreshConnections,
                     onFullApp = ::openFullApp,
+                    onSendFiles = ::openSendFiles,
                     onAppSettings = { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))) },
                     onVoiceMode = { voice.cancel(); model.updateHoldToTalk(it) })
             }
@@ -102,6 +118,12 @@ class LiteRemoteActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(ATTACHMENT_TARGET, attachmentTarget)
+        outState.putBoolean(AWAITING_ATTACHMENTS, awaitingAttachments)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onStop() {
         if (::voice.isInitialized) voice.cancel()
         handler.removeCallbacks(refresh)
@@ -135,5 +157,28 @@ class LiteRemoteActivity : AppCompatActivity() {
 
     private fun openFullApp() {
         startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+    }
+
+    private fun openSendFiles() {
+        if (awaitingAttachments || model.loadingAttachments || model.sending) return
+        val target = model.selected?.id ?: run {
+            model.showNotice(R.string.lite_pair_hint)
+            return
+        }
+        voice.cancel()
+        attachmentTarget = target
+        awaitingAttachments = true
+        try {
+            chooseAttachments.launch(arrayOf("*/*"))
+        } catch (_: ActivityNotFoundException) {
+            attachmentTarget = null
+            awaitingAttachments = false
+            model.showNotice(R.string.lite_share_unavailable)
+        }
+    }
+
+    private companion object {
+        const val ATTACHMENT_TARGET = "lite_attachment_target"
+        const val AWAITING_ATTACHMENTS = "lite_awaiting_attachments"
     }
 }
