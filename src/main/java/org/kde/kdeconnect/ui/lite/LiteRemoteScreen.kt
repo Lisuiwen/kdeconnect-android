@@ -8,6 +8,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -62,7 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.kde.kdeconnect_tp.R
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LiteRemoteScreen(
     model: LiteRemoteViewModel,
@@ -151,14 +153,20 @@ fun LiteRemoteScreen(
                 label = { Text(stringResource(R.string.lite_draft)) },
                 placeholder = { Text(stringResource(R.string.lite_draft_hint)) },
                 minLines = 4, maxLines = 8, modifier = Modifier.fillMaxWidth())
-            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
+            FlowRow(Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(enabled = model.draft.isNotEmpty() && !busy, onClick = { model.editDraft("") }) {
                     Text(stringResource(R.string.clear_compose))
                 }
-                Button(enabled = model.canSend && model.draft.isNotBlank() && !busy, onClick = model::sendText) {
-                    Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text(stringResource(R.string.lite_send_text), modifier = Modifier.padding(start = 8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Button(enabled = model.canSend && model.draft.isNotBlank() && !busy, onClick = model::sendText) {
+                        Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(stringResource(R.string.lite_send_text), modifier = Modifier.padding(start = 8.dp))
+                    }
+                    OutlinedButton(enabled = model.canSend && !busy,
+                        onClick = { model.sendShortcut(RemoteShortcutController.Shortcut.ENTER) }) {
+                        Text(stringResource(R.string.lite_enter))
+                    }
                 }
             }
             model.notice?.let {
@@ -171,7 +179,6 @@ fun LiteRemoteScreen(
                 Triple(RemoteShortcutController.Shortcut.SCREENSHOT, R.string.lite_screenshot, "Win ⇧ S"),
                 Triple(RemoteShortcutController.Shortcut.COPY, R.string.lite_copy, "Ctrl C"),
                 Triple(RemoteShortcutController.Shortcut.PASTE, R.string.lite_paste, "Ctrl V"),
-                Triple(RemoteShortcutController.Shortcut.ENTER, R.string.lite_enter, "↵"),
                 Triple(RemoteShortcutController.Shortcut.ESCAPE, R.string.lite_escape, "Esc"),
                 Triple(RemoteShortcutController.Shortcut.UNDO, R.string.lite_undo, "Ctrl Z"),
             )
