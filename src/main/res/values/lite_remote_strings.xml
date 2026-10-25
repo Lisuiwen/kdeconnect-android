@@ -26,8 +26,6 @@
     <string name="lite_voice_listening">Listening · release or tap to finish</string>
     <string name="lite_voice_processing">Recognizing…</string>
     <string name="lite_hold_to_talk">Hold to talk</string>
-    <string name="lite_release_to_recognize">Release to recognize speech</string>
-    <string name="lite_tap_to_recognize">Tap again to recognize speech</string>
     <string name="lite_tap_to_talk">Tap to start / tap again to stop</string>
     <string name="lite_stop_voice">Stop voice recognition</string>
     <string name="lite_use_tap_mode">Switch to tap mode</string>

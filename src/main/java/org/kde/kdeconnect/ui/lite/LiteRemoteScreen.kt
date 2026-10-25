@@ -17,16 +17,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -48,18 +52,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -91,11 +101,30 @@ fun LiteRemoteScreen(
 ) {
     var settings by remember { mutableStateOf(false) }
     var devicePicker by remember { mutableStateOf(false) }
+    var editorFocused by remember { mutableStateOf(false) }
+    var composerHeight by remember { mutableIntStateOf(0) }
+    val actionsBringIntoView = remember { BringIntoViewRequester() }
+    val imeInsets = WindowInsets.ime
+    val density = LocalDensity.current
+    val imeBottom = imeInsets.getBottom(density)
+    val keyboardVisible = imeBottom > 0
     val palette = litePalette(isSystemInDarkTheme())
     val active = voice.phase == VoiceInputPhase.STARTING || voice.phase == VoiceInputPhase.LISTENING
     val busy = active || voice.phase == VoiceInputPhase.PROCESSING || model.loadingAttachments || model.sending
     val connected = model.selected?.connected == true
-    val microphoneTopPadding = if (LocalConfiguration.current.screenHeightDp < 640) 48.dp else 96.dp
+    val microphoneTopPadding = when {
+        keyboardVisible -> 8.dp
+        LocalConfiguration.current.screenHeightDp < 640 -> 48.dp
+        else -> 96.dp
+    }
+    LaunchedEffect(editorFocused, imeBottom, composerHeight) {
+        if (editorFocused && keyboardVisible) {
+            // Insets animate before the resized layout is placed. Keep the entire action row visible,
+            // rather than only the text cursor, without fighting normal character-by-character input.
+            withFrameNanos { }
+            if (editorFocused && imeInsets.getBottom(density) > 0) actionsBringIntoView.bringIntoView()
+        }
+    }
     val connectionStatus = stringResource(when {
         connected -> R.string.lite_connected
         model.refreshing -> R.string.lite_connecting
@@ -157,16 +186,17 @@ fun LiteRemoteScreen(
                 onStartVoice, onStopVoice, onCancelVoice)
             Spacer(Modifier.height(28.dp))
             val draftLabel = stringResource(R.string.lite_draft)
-            Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
+            Surface(modifier = Modifier.fillMaxWidth().onSizeChanged { composerHeight = it.height }, shape = RoundedCornerShape(16.dp),
                 color = palette.panel, contentColor = palette.text) {
                 Column(Modifier.padding(12.dp)) {
                     Text(draftLabel, color = palette.secondary, style = MaterialTheme.typography.labelMedium)
                     BasicTextField(value = model.draft, onValueChange = model::editDraft,
                         enabled = !model.loadingAttachments && !model.sending,
-                        minLines = 2, maxLines = 6,
+                        minLines = 2, maxLines = if (keyboardVisible) 3 else 6,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(color = palette.text),
                         cursorBrush = SolidColor(palette.text),
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(vertical = 8.dp)
+                            .onFocusChanged { editorFocused = it.isFocused }
                             .semantics { contentDescription = draftLabel },
                         decorationBox = { editor ->
                             Box {
@@ -190,7 +220,7 @@ fun LiteRemoteScreen(
                             color = palette.secondary, style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(vertical = 4.dp))
                     }
-                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    BoxWithConstraints(Modifier.fillMaxWidth().bringIntoViewRequester(actionsBringIntoView)) {
                         val compactActions = maxWidth < 320.dp || LocalConfiguration.current.fontScale > 1.3f
                         val sendStyle = if (compactActions) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -348,7 +378,7 @@ private fun MicrophoneButton(voice: VoiceInputState, holdToTalk: Boolean, palett
         VoiceInputPhase.ERROR -> voiceErrorMessage(voice.error)
         VoiceInputPhase.IDLE -> if (holdToTalk) R.string.lite_hold_to_talk else R.string.lite_tap_to_talk
     })
-    // One touch region includes both the circle and its labels; drawing and hit bounds stay aligned.
+    // One touch region handles the circle and any active status text.
     Column(horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {
             role = Role.Button
@@ -384,15 +414,9 @@ private fun MicrophoneButton(voice: VoiceInputState, holdToTalk: Boolean, palett
                 else Icon(painterResource(R.drawable.ic_mic_black), contentDescription = null, tint = palette.text, modifier = Modifier.size(32.dp))
             }
         }
-        Spacer(Modifier.height(12.dp))
         Text(status, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 12.dp),
             color = if (voice.phase == VoiceInputPhase.ERROR) MaterialTheme.colorScheme.error else palette.text)
-        if (voice.phase == VoiceInputPhase.IDLE || active) {
-            Text(stringResource(if (holdToTalk) R.string.lite_release_to_recognize else R.string.lite_tap_to_recognize),
-                color = palette.secondary, style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
-        }
         if (busy) {
             val seconds = voice.elapsedMillis / 1000
             Text("%02d:%02d".format(seconds / 60, seconds % 60), color = palette.secondary,

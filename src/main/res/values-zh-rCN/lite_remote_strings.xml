@@ -26,8 +26,6 @@
     <string name="lite_voice_listening">正在聆听 · 松开或点击结束</string>
     <string name="lite_voice_processing">正在识别…</string>
     <string name="lite_hold_to_talk">按住说话</string>
-    <string name="lite_release_to_recognize">松开后识别文字</string>
-    <string name="lite_tap_to_recognize">再次点击后识别文字</string>
     <string name="lite_tap_to_talk">点击开始 / 再次点击结束</string>
     <string name="lite_stop_voice">结束语音识别</string>
     <string name="lite_use_tap_mode">切换到点击模式</string>
